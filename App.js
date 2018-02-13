@@ -1,14 +1,13 @@
 import React, { Component } from 'react';
-import {
-  Text,
-  View
-} from 'react-native';
-import TodoList from './containers/todo-list';
+import { Container } from 'native-base';
+import { Router } from './configs/router';
 
 export default class App extends Component {
   render() {
     return (
-      <TodoList />
+      <Container>
+        <Router />
+      </Container>
     );
   }
 }
