@@ -31,4 +31,4 @@ export const Router = StackNavigator({
       header: null
 		}
 	},
-}, { initialRouteName: 'TodoList'});
+}, { initialRouteName: 'Login'});
