@@ -2,11 +2,17 @@ import React, { Component } from 'react';
 import {
   View,
 	AsyncStorage,
-	StyleSheet
+	StyleSheet,
+	Alert,
+	ActivityIndicator,
+	Dimensions
 } from 'react-native';
 import { Container, Header, Content, List, ListItem, Title, Left, Body, Right, CheckBox, Text, Button, Icon, Input, Item } from 'native-base';
-import colors from '../../constants/colors';
 import TodoListItem from './TodoListItem';
+import { TASK_BY_USER, TASK_BY_ID } from '../../configs/api';
+
+import colors from '../../constants/colors';
+import axios from 'axios';
 
 export default class TodoList extends Component {
 
@@ -14,71 +20,114 @@ export default class TodoList extends Component {
 		super(props);
 
 		this.state = {
-			data: [],
-			text: ''
+			user: {},
+			list: [],
+			text: '',
+			isLoading: false,
 		}
 
-    this.onAdd = this.onAdd.bind(this);
     this.onRemove = this.onRemove.bind(this);
     this.onChecked = this.onChecked.bind(this);
 	}
 
 	componentWillMount() {
-		this.getDataStorage();
+		this.getDataUserStorage();
 	}
 
-	onAdd() {
-		let text = this.state.text;
-		if (text !== '' & text !== null) {
-			let data = this.state.data;
-			data.push({
-				id: data.length + 1,
-				task: text,
-				checked: false
-			});
+	onRefresh = (id) => {
+		this.fetchDataListByUser(id);
+  };
+
+	goToAddTodo = () =>  {
+		const { navigate } = this.props.navigation;
+		navigate('AddTodo', { onRefresh: this.onRefresh });
+	}
+
+	getDataUserStorage = () => {
+		AsyncStorage.getItem('user')
+		 .then((result) => {
+			let user = JSON.parse(result);
 			this.setState({
-				data: data,
-				text: ''
-			}, () => this.saveToStorage(data));
-		}
+				user: user
+			}, () => this.fetchDataListByUser(user._id))
+		 })
+		 .catch((error) => {
+			 console.log('AsyncStorage save error: ' + error);
+		 });
+ 	}
+
+ 	fetchDataListByUser = (id) => {
+		this.setState({ isLoading: true });
+		axios.get(TASK_BY_USER + id)
+		.then((response) => {
+			console.log(response);
+			const data = response.data;
+			if (data.success) {
+				this.setState({ 
+					isLoading: false,
+					list: data.data
+				});
+			} else {
+				Alert.alert('Failed', data.message);
+			}
+		})
+		.catch((error) => {
+			console.log(error);
+			this.setState({ isLoading: false });
+			Alert.alert('Error', error);
+		});
 	}
 
-	getDataStorage() {
-	 	AsyncStorage.getItem('list')
-      .then((result) => {
-        let data = JSON.parse(result)
-				this.setState({
-					data: data
-				})
-      })
-			.catch((error) => {
-				console.log('AsyncStorage save error: ' + error);
-			});
-	}
-
-	async saveToStorage(data) {
+	saveCategoryToStorage = async (data) => {
 		try {
-			await AsyncStorage.setItem('list', JSON.stringify(data));
+			await AsyncStorage.setItem('category', JSON.stringify(data));
 		} catch (error) {
 			console.log('AsyncStorage save error: ' + error.message);
 		}
 	}
 
-	onRemove(index) {
-		let data = this.state.data;
-		data.splice(index, 1);
-		this.setState({
-			data: data
-		}, () => this.saveToStorage(data));
+	onRemove = (id) => {
+		this.setState({ isLoading: true });
+		axios.delete(TASK_BY_ID + id)
+		.then((response) => {
+			console.log(response);
+			const data = response.data;
+			if (data.success) {
+				this.fetchDataListByUser(this.state.user._id);
+			} else {
+				Alert.alert('Failed', data.message);
+			}
+		})
+		.catch((error) => {
+			console.log(error);
+			this.setState({ isLoading: false });
+			Alert.alert('Error', error);
+		});
 	}
 
-	onChecked(index) {
-		let data = this.state.data;
-		let item = data[index];
-		item.checked = !item.checked;
-		this.setState({
-			data: data
-		}, () => this.saveToStorage(data));
+	onChecked = (index, id) => {
+		let item = this.state.list[index];
+		const status = !item.status;
+		this.setState({ isLoading: true });
+		axios.put(TASK_BY_ID + id, {
+			status: status,
+  		task: item.task
+		})
+		.then((response) => {
+			console.log(response);
+			this.setState({ isLoading: false });
+			const data = response.data;
+			if (data.success) {
+				this.fetchDataListByUser(this.state.user._id);
+			} else {
+				Alert.alert('Failed', data.message);
+			}
+		})
+		.catch((error) => {
+			console.log(error);
+			this.setState({ isLoading: false });
+			Alert.alert('Error', error);
+		});
 	}
 
   render() {
@@ -89,25 +138,44 @@ export default class TodoList extends Component {
           <Body>
             <Title>Todo</Title>
           </Body>
-          <Right />
+          <Right>
+						<Button
+              transparent
+              onPress={this.goToAddTodo.bind(this)}>
+							<Icon ios="ios-add" android="md-add" style={{ color: colors.primaryDark }}/>
+            </Button>
+					</Right>
         </Header>
         <Content>
-					<Item style={{ marginLeft: 16, marginRight: 16, marginVertical: 16 }}>
-						<Input onChangeText={(text) => this.setState({text})} value={this.state.text} placeholderTextColor={colors.greyLight} placeholder="Task" style={{ fontSize: 20, color: colors.greyLight }} />
-						<Button onPress={() => this.onAdd()} style={{ backgroundColor: colors.primaryDark }}>
-							<Text>Add</Text>
-						</Button>
-					</Item>
           <List style={{ marginRight: 16 }}>
 						{
-              this.state.data.map((item, i) => {
+              this.state.list.map((item, i) => {
                 return (
-									<TodoListItem onChecked={() => this.onChecked(i)} onPress={() => this.onRemove(i)} rowData={item} key={i} />
+									<TodoListItem onChecked={() => this.onChecked(i, item._id)} onPress={() => this.onRemove(item._id)} rowData={item} key={i} />
                 );
               })
             }
           </List>
         </Content>
+				{
+          this.state.isLoading &&
+            (
+              <Container style={{
+								top: 0,
+								bottom: 0,
+								right: 0,
+								left: 0,
+                backgroundColor: 'rgba(240,240,240,0.6)',
+                justifyContent: 'center',
+                position: 'absolute',
+                zIndex: 99
+              }}>
+                <ActivityIndicator
+                  size="large"
+                />
+              </Container>
+            )
+        }
       </Container>
     );
   }

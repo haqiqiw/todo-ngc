@@ -14,7 +14,7 @@ import axios from 'axios';
 import colors from '../../constants/colors';
 import moment from 'moment';
 
-export default class SignUp extends Component {
+export default class Register extends Component {
 
 	constructor(props){
     super(props);

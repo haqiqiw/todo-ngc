@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import {
   View
 } from 'react-native';
-import { Container, Header, Content, List, ListItem, Left, Body, Right, CheckBox, Text, Button, Icon } from 'native-base';
+import { ListItem, Item, Left, Body, Right, CheckBox, Text, Button, Icon } from 'native-base';
 import colors from '../../constants/colors';
 
 export default class TodoListItem extends Component {
@@ -18,16 +18,19 @@ export default class TodoListItem extends Component {
   render() {
 		const item = this.props.rowData;
     return (
-			<ListItem icon>
+			<ListItem icon style={{ marginVertical: 8 }}>
 				<Left style={{ marginRight: 16 }}>
-					<CheckBox onPress={this.props.onChecked} checked={item.checked} color={colors.primaryDark} />
+					<CheckBox onPress={this.props.onChecked} checked={item.status} color={colors.primaryDark} />
 				</Left>
 				<Body>
-					<Text>{item.task}</Text>
+					<Text numberOfLines={1}>{item.task}</Text>
+					<Text numberOfLines={1}>{item.dueDate}</Text>
 				</Body>
 				<Right style={{ justifyContent: 'center' }}>
-					<Button onPress={this.props.onPress} style={{ backgroundColor: colors.primary }} iconRight rounded small>
-						<Text>Remove</Text>
+					<Button
+						transparent
+						onPress={this.props.onPress}>
+						<Icon ios="ios-trash" android="md-trash" style={{ color: colors.primaryDark }}/>
 					</Button>
 				</Right>
 			</ListItem>

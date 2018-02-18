@@ -4,6 +4,7 @@ import { StackNavigator } from 'react-navigation';
 import Login from '../containers/login';
 import Register from '../containers/register';
 import TodoList from '../containers/todo-list';
+import AddTodo from '../containers/add-todo';
 
 export const Router = StackNavigator({
 	Login: {
@@ -24,4 +25,10 @@ export const Router = StackNavigator({
       header: null
 		}
 	},
-}, { initialRouteName: 'Login'});
+	AddTodo: {
+		screen: AddTodo,
+		navigationOptions: {
+      header: null
+		}
+	},
+}, { initialRouteName: 'TodoList'});

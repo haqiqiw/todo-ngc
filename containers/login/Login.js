@@ -3,16 +3,17 @@ import {
 	View,
 	Alert,
 	ActivityIndicator,
-	Dimensions
+	Dimensions,
+	AsyncStorage
 } from 'react-native';
 import { NavigationActions } from 'react-navigation'
 import { Container, Content, Item, Input, Button, Text } from 'native-base';
-import { Col, Row, Grid } from "react-native-easy-grid";
-import colors from '../../constants/colors';
 import { LOGIN } from '../../configs/api';
+
+import colors from '../../constants/colors';
 import axios from 'axios';
 
-export default class SignIn extends Component {
+export default class Login extends Component {
 
 	constructor(props){
     super(props);
@@ -36,6 +37,14 @@ export default class SignIn extends Component {
 		this.props.navigation.dispatch(resetAction);
 	}
 
+	saveUserToStorage = async (data) => {
+		try {
+			await AsyncStorage.setItem('user', JSON.stringify(data));
+		} catch (error) {
+			console.log('AsyncStorage save error: ' + error.message);
+		}
+	}
+
 	login = () => {
 		const { username, password } = this.state;
 		if (username === '' || password === '') {
@@ -51,6 +60,7 @@ export default class SignIn extends Component {
 				this.setState({ isLoading: false });
 				const data = response.data;
 				if (data.success) {
+					this.saveUserToStorage(data.data);
 					this.goToTodoList();
 				} else {
 					Alert.alert('Failed', data.message);
