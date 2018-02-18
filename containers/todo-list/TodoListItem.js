@@ -15,6 +15,11 @@ export default class TodoListItem extends Component {
 		}
 	}
 
+ 	isoDatetoDate = (str) => {
+    const date = new Date(str);
+    return date.getFullYear() + '/' + (date.getMonth()+1) + '/' + date.getDate();
+  }
+
   render() {
 		const item = this.props.rowData;
     return (
@@ -24,7 +29,7 @@ export default class TodoListItem extends Component {
 				</Left>
 				<Body>
 					<Text numberOfLines={1}>{item.task}</Text>
-					<Text numberOfLines={1}>{item.dueDate}</Text>
+					<Text numberOfLines={1}>{this.isoDatetoDate(item.dueDate)}</Text>
 				</Body>
 				<Right style={{ justifyContent: 'center' }}>
 					<Button
