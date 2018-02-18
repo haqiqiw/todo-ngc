@@ -66,7 +66,7 @@ export default class TodoList extends Component {
 
 	onRemove(index) {
 		let data = this.state.data;
-		data = data.splice(index, 1);
+		data.splice(index, 1);
 		this.setState({
 			data: data
 		}, () => this.saveToStorage(data));

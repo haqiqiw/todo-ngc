@@ -8,9 +8,11 @@
   },
   "dependencies": {
     "axios": "^0.17.1",
+    "moment": "^2.20.1",
     "native-base": "^2.3.8",
     "react": "16.2.0",
     "react-native": "0.53.0",
+    "react-native-action-picker": "^1.0.2",
     "react-navigation": "^1.0.3"
   },
   "devDependencies": {
