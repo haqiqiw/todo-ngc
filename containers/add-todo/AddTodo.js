@@ -57,7 +57,7 @@ export default class AddTodo extends Component {
 		AsyncStorage.getItem('category')
 		 .then((result) => {
 			let category = JSON.parse(result);
-			this.state.categoryStorage = category;
+			this.state.categoryStorage = category == null ? [] : category;
 			const data = this.state.listCategory;
 			category.forEach((item) => {
 				data.push({
@@ -79,7 +79,6 @@ export default class AddTodo extends Component {
 			console.log('AsyncStorage save error: ' + error.message);
 		}
 	}
-
 
 	onDuePress = () => {
     let dueDate = this.state.dueDate;
@@ -112,7 +111,13 @@ export default class AddTodo extends Component {
 		this.setState({
 			pickerCategory: value
 		}, () => this.toggleCategoryModal());
-  };
+	};
+	 
+	categoryExists(array, value) {
+		return array.some((item) => {
+			return item === value;
+		}); 
+	}
 	
 	add = () => {
 		const { task, dueDate, pickerCategory, category, user } = this.state;
@@ -125,7 +130,9 @@ export default class AddTodo extends Component {
 			if (pickerCategory == 'New Category') {
 				cat = category;
 				const catList = this.state.categoryStorage;
-				catList.push(cat);
+				if (!this.categoryExists(catList, cat)) {
+					catList.push(cat);
+				}
 				this.saveCategoryToStorage(catList);
 			} else {
 				cat = pickerCategory;

@@ -29,7 +29,8 @@ export default class TodoListItem extends Component {
 				</Left>
 				<Body>
 					<Text numberOfLines={1}>{item.task}</Text>
-					<Text numberOfLines={1}>{this.isoDatetoDate(item.dueDate)}</Text>
+					<Text style={{ fontSize: 12 }} numberOfLines={1}>{item.category}</Text>
+					<Text style={{ fontSize: 12 }} numberOfLines={1}>{this.isoDatetoDate(item.dueDate)}</Text>
 				</Body>
 				<Right style={{ justifyContent: 'center' }}>
 					<Button

@@ -9,6 +9,8 @@ import {
 } from 'react-native';
 import { Container, Header, Content, List, ListItem, Title, Left, Body, Right, CheckBox, Text, Button, Icon, Input, Item } from 'native-base';
 import TodoListItem from './TodoListItem';
+import * as Animatable from 'react-native-animatable';
+import Accordion from 'react-native-collapsible/Accordion';
 import { TASK_BY_USER, TASK_BY_ID } from '../../configs/api';
 
 import colors from '../../constants/colors';
@@ -22,6 +24,7 @@ export default class TodoList extends Component {
 		this.state = {
 			user: {},
 			list: [],
+			groupList: [],
 			text: '',
 			isLoading: false
 		}
@@ -54,7 +57,13 @@ export default class TodoList extends Component {
 		 .catch((error) => {
 			 console.log('AsyncStorage save error: ' + error);
 		 });
- 	}
+	 }
+	 
+	categoryExists(array, value) {
+		return array.some((item) => {
+			return item === value;
+		}); 
+	}
 
  	fetchDataListByUser = (id) => {
 		this.setState({ isLoading: true });
@@ -62,10 +71,27 @@ export default class TodoList extends Component {
 		.then((response) => {
 			console.log(response);
 			const data = response.data;
+			let groupList = [];
+			let groupListNew = [];
+			let category = [];
+			data.data.forEach((item) => {
+				if (!this.categoryExists(category, item.category)) {
+					category.push(item.category);
+					groupList[item.category] = [];
+				}
+				groupList[item.category].push(item);
+			});
+			category.forEach((item) => {
+				groupListNew.push({
+					category: item,
+					task: groupList[item]
+				})
+			});
 			if (data.success) {
 				this.setState({ 
 					isLoading: false,
-					list: data.data
+					list: data.data,
+					groupList: groupListNew
 				});
 			} else {
 				Alert.alert('Failed', data.message);
@@ -170,7 +196,7 @@ export default class TodoList extends Component {
             </Button>
 					</Left>
           <Body>
-            <Title>Todo</Title>
+            <Title>Todo{this.state.groupList.length}</Title>
           </Body>
           <Right>
 						<Button
@@ -180,16 +206,33 @@ export default class TodoList extends Component {
             </Button>
 					</Right>
         </Header>
-        <Content>
-          <List style={{ marginRight: 16 }}>
-						{
-              this.state.list.map((item, i) => {
-                return (
-									<TodoListItem onChecked={() => this.onChecked(i, item._id)} onPress={() => this.onRemove(item._id)} rowData={item} key={i} />
-                );
-              })
-            }
-          </List>
+        <Content style={{ backgroundColor: colors.bgLight }}>
+					<View style={{ width: '100%' }}>
+						<Accordion
+							underlayColor={'rgba(52, 52, 52, 0.2)'}
+							sections={this.state.groupList}
+							renderHeader={(section, i, isActive) => {
+								return (
+									<View style={{ width: '100%', paddingVertical: 16, paddingHorizontal: 16, backgroundColor: colors.primaryLight, borderBottomWidth: 1, borderColor: colors.white  }}>
+										<Text style={{ color: colors.white, fontSize: 18 }} numberOfLines={1}>{section.category}</Text>
+									</View> 
+								)
+							}}
+							renderContent={(section, i, isActive) => {
+								return (
+									<List style={{ backgroundColor: colors.white }}>
+									{
+										section.task.map((item, i) => {
+											return (
+												<TodoListItem onChecked={() => this.onChecked(i, item._id)} onPress={() => this.onRemove(item._id)} rowData={item} key={i} />
+											)
+										}) 
+									}
+									</List>
+								)
+							}}
+							duration={400} />
+					</View>	
         </Content>
 				{
           this.state.isLoading &&
