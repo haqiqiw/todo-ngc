@@ -23,7 +23,7 @@ export default class TodoList extends Component {
 			user: {},
 			list: [],
 			text: '',
-			isLoading: false,
+			isLoading: false
 		}
 
     this.onRemove = this.onRemove.bind(this);
@@ -130,11 +130,45 @@ export default class TodoList extends Component {
 		});
 	}
 
+	logout = () => {
+		Alert.alert(
+			'Warning',
+			'Are you sure to logout ?',
+			[
+				{text: 'Yes', onPress: () => this.removeUserToStorage()},
+				{text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
+			],
+			{ cancelable: false }
+		)
+	}
+
+	goToLogin = () =>  {
+		const resetAction = NavigationActions.reset({
+			index: 0,
+			actions: [NavigationActions.navigate({ routeName: 'Login' })],
+		});
+		this.props.navigation.dispatch(resetAction);
+	}
+
+	removeUserToStorage = async () => {
+		try {
+			await AsyncStorage.removeItem('user', () => this.goToLogin());
+		} catch (error) {
+			console.log('AsyncStorage save error: ' + error.message);
+		}
+	}
+
   render() {
     return (
 			<Container>
         <Header>
-          <Left />
+          <Left>
+						<Button
+              transparent
+              onPress={this.logout.bind(this)}>
+							<Icon ios="ios-log-out" android="md-log-out" style={{ color: colors.primaryDark }}/>
+            </Button>
+					</Left>
           <Body>
             <Title>Todo</Title>
           </Body>

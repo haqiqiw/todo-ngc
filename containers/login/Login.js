@@ -20,9 +20,28 @@ export default class Login extends Component {
     this.state = {
 			username: '',
 			password: '',
-			isLoading: false
+			isLoading: false,
+      loginLoading: true
 		}
 	}
+
+	componentWillMount() {
+		this.getDataUserStorage();
+	}
+
+	getDataUserStorage = () => {
+		AsyncStorage.getItem('user')
+		 	.then((result) => {
+				this.setState({ loginLoading: false })
+				if(result != null) {
+					this.goToTodoList();
+				}
+			})
+		 	.catch((error) => {
+				this.setState({ loginLoading: false })
+			 	console.log('AsyncStorage save error: ' + error);
+		 });
+ 	}
 	
 	goToRegister = () =>  {
 		const { navigate } = this.props.navigation;
@@ -75,6 +94,16 @@ export default class Login extends Component {
 	}
 
   render() {
+    if (this.state.loginLoading) {
+      return (
+				<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+					<ActivityIndicator
+						color={colors.primary}
+						size="large" />
+				</View>
+			)
+		}
+		
     return (
 			<Container style={{ backgroundColor: colors.bgLight }}>
 				<Container style={{ paddingHorizontal: '10%', paddingTop: 48, justifyContent: 'center' }}>
